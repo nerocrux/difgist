@@ -1,0 +1,13 @@
+History.txt
+Manifest.txt
+PostInstall.txt
+README.rdoc
+Rakefile
+bin/difgist
+lib/difgist.rb
+lib/difgist/difgist.rb
+script/console
+script/destroy
+script/generate
+test/test_difgist.rb
+test/test_helper.rb
