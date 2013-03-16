@@ -4,6 +4,7 @@ require 'rest-client'
 require 'json'
 require 'optparse'
 require 'yaml'
+require 'pathname'
 
 class Difgist
 
@@ -14,8 +15,7 @@ class Difgist
     @options = {}
     @settings = {}
     load_config
-    @optparse = OptionParser.new()
-    set_options
+    set_options(arguments)
     check_options
   end
 
@@ -54,10 +54,17 @@ class Difgist
     system("chmod 600 #{@config_yml}")
   end
 
-  def set_options
+  def set_options(arguments)
+    @optparse = OptionParser.new
     @optparse.banner = "Usage: -d --description, -f -file"
-    @optparse.on('-d [VALUE]','--description [VALUE]','description option') { |opt| @options[:description] = opt }
-    @optparse.on('-f [VALUE]','--file [VALUE]','file option') { |opt| @options[:target_file] = opt }
+    @optparse.on('-d value','--description value') { |opt| @options[:description] = opt }
+    @optparse.on('-f value','--file value') { |opt| @options[:target_file] = opt }
+    begin
+      @optparse.parse!(arguments)
+    rescue
+      puts "Bad params."
+      exit
+    end
   end
 
   def check_options
@@ -67,8 +74,8 @@ class Difgist
     if @options[:target_file] == nil
       then target_file = ""
     else
-      if File.exist?(@options[:target_file]) == false
-        puts "No such file. Dump all."
+      if File.exist?("#{@options[:target_file]}") == false
+        puts "No such file. Dump diff."
         @options[:target_file] = ""
       end
     end
@@ -76,13 +83,19 @@ class Difgist
 
   def run
     begin
-      if File.exist?(".svn")
-        then
-          system("LANG=C svn diff #{@options[:target_file]} > #{@diff_file}")
-      elsif system('git rev-parse --is-inside-work-tree >/dev/null 2>&1') == true
-        then
-          system("git diff #{@options[:target_file]} > #{@diff_file}")
-        else
+      if @options[:target_file] != nil
+        @diff_file = @options[:target_file]
+        @filename = Pathname.new("#{@options[:target_file]}").basename
+      else
+        if File.exist?(".svn")
+          then
+            system("LANG=C svn diff #{@options[:target_file]} > #{@diff_file}")
+        elsif system('git rev-parse --is-inside-work-tree >/dev/null 2>&1') == true
+          then
+            system("git diff #{@options[:target_file]} > #{@diff_file}")
+          else
+        end
+        @filename = 'difgist.diff'
       end
 
       payload = nil
@@ -91,13 +104,13 @@ class Difgist
           :description => @options[:description],
           :public => true,
           :files => {
-            "difgist.diff" => {
+            @filename => {
               :content => f.read
             }
           }
         }
-      response = JSON.parse(RestClient.post("https://#{@settings[:username]}:#{@settings[:password]}@#{@settings[:hostname]}/gists", payload.to_json, :content_type => "text/json"))
-      puts "Done. " + response['html_url']
+        response = JSON.parse(RestClient.post("https://#{@settings[:username]}:#{@settings[:password]}@#{@settings[:hostname]}/gists", payload.to_json, :content_type => "text/json"))
+        puts "Done. " + response['html_url']
       end
     rescue
       puts "Error."
