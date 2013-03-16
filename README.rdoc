@@ -4,7 +4,7 @@
 
 == DESCRIPTION:
 
-FIX (describe your package)
+Quickly post diff or single file to gist.
 
 == FEATURES/PROBLEMS:
 
@@ -12,15 +12,36 @@ FIX (describe your package)
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+* Post diff if under svn / git managed directory
+```
+difgist
+```
 
-== REQUIREMENTS:
+ * Customize description
+```
+difgist -d bugfix
+```
 
-* FIX (list of requirements)
+* Post file to gist
+```
+difgist -f /home/nerocrux/toolbox/sample.rb
+```
+
+ * Sure you can add description
+```
+difgist -f /home/nerocrux/toolbox/sample.rb -d no-space-allowed-sorry!
+```
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+```
+gem install difgist
+```
+
+* If run difgist for the first time, you'll be ask to do some setups.
+ * HOSTNAME: If use github, simply hit enter to skip; or you can enter API endpoint if you are a GHE user.
+ * USERNAME: you know what to do
+ * PASSWORD: you know what to do
 
 == LICENSE:
 
